@@ -10,45 +10,22 @@ import java.util.Set;
 import clwhthr.account.Account;
 import clwhthr.setting.Config;
 
-public class AccountFileGetter {
+public class AccountFileGetter extends FileGetter{
+
+	public AccountFileGetter(String fileName) {
+		super(fileName);
+	}
+	public AccountFileGetter(Account account) {
+		super(account.getName());
+	}
+	@Override
+	Path getFileDirectory() {
+		return config.getAccountPath();
+	}
+	@Override
+	String getFileFormat() {
+		// TODO 自動產生的方法 Stub
+		return "account";
+	}
 	
-	static Config config = Config.getInstance();
-	static Path pathAccount = config.getAccountPath();
-	
-	@SuppressWarnings("null")
-	public static Set<Account> getAllAccounts(){
-		Set<Account>set = new HashSet<Account>();
-		File folder = new File(pathAccount.toString());
-		File files[] = folder.listFiles();
-		for (File file : files) {
-			if(file.isDirectory())continue;
-			String fileName = file.getName();
-			String format = fileName.substring(fileName.lastIndexOf('.') + 1);
-			fileName = fileName.substring(0, fileName.lastIndexOf('.'));
-			if(format != "account")continue;
-			AccountFileReader reader = null;
-			try {
-				reader = new AccountFileReader(file);
-			} catch (FileNotFoundException e) {
-				reader.close();
-				e.printStackTrace();
-				continue;
-			}
-			set.add(reader.getAccount());
-			reader.close();
-		}
-		return set;
-	}
-	public static File getFile(Account account) {
-		return getFile(account.getName());
-	}
-	public static File getFile(String name) {
-		try {
-			File file = new File(pathAccount.toString() ,name + ".account");
-			return file;
-		} catch (NullPointerException e) {
-			return null;
-		}
-		
-	}
 }

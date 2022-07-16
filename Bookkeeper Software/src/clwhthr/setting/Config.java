@@ -10,6 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -17,6 +19,7 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileSystemView;
 
 import clwhthr.account.Account;
+import clwhthr.util.Debug;
 
 
 public final class Config {
@@ -28,15 +31,16 @@ public final class Config {
 	private Path pathAccount;//clwhthr/account
 	private Path pathRecords;//clwhthr/records
 	
-	private Set<ConfigOption> options = new HashSet<ConfigOption>();
+	private List<ConfigOption> options = new LinkedList<ConfigOption>();
 	private ConfigOption rememberPassword;
 	private ConfigOption lastAccountName;
+	private ConfigOption screenSize;
 	
 	private Config() {
 		init();
 	}
 	
-	public static Config getInstance() {
+	public static synchronized Config getInstance() {
 		if(instance == null)instance = new Config();
 		return instance;
 	}
@@ -80,8 +84,9 @@ public final class Config {
 		}
 	}
 	private void setDefaultConfig() {
-		rememberPassword = new ConfigOption<Boolean>("rememberPassword", "false");
-		lastAccountName = new ConfigOption<String>("AccountName", "none");
+		rememberPassword = new ConfigOption<Boolean>("RememberPassword", "false");
+		lastAccountName = new ConfigOption<String>("LastAccountName", "none");
+		screenSize = new ConfigOption<Integer>("ScreenSize","2");
 	}
 	private void buildConfigFile() throws IOException {
 		setDefaultConfig();
@@ -114,6 +119,7 @@ public final class Config {
 		//add to set
 		options.add(rememberPassword);
 		options.add(lastAccountName);
+		options.add(screenSize);
 	}
 	public String getLastAccountName() {
 		if(getRememberPassword() == false)return null;
@@ -135,4 +141,27 @@ public final class Config {
 	public Path getProgrameFilePath() {
 		return this.pathProgramFile;
 	}
+	
+	//clwhthr/records/<username>
+	public Path getRecordPath(Account account) {
+		Path path = Paths.get(pathRecords.toString(), account.getName().toString());
+		if(path==null)Debug.log(this.getClass(), "path is null");
+		if(Files.exists(path) == false) {
+			try {
+				Files.createDirectories(path);
+			} catch (IOException e) {
+				// TODO 自動產生的 catch 區塊
+				e.printStackTrace();
+			}
+		}
+		return path;
+	}
+	
+	public int getScreenSize() {
+		return Integer.valueOf(screenSize.getValue());
+	}
+	public void setScreenSize(Integer size) {
+		screenSize.setValue(size.toString());
+	}
+	
 }

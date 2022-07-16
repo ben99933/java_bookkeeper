@@ -34,7 +34,6 @@ public class AccountFileWriter implements Closeable{
 	@Override
 	public void close() throws WebServiceException {
 		outputStream.close();
-		
 	}
 	
 	

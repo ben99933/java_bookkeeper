@@ -7,10 +7,10 @@ import org.eclipse.swt.widgets.Shell;
 
 public class FormHelper {
 	
-	enum ScreenSize{
-		small(960,540),medium(1280, 720),large(1600,900);
-		int width;
-		int height;
+	public enum ScreenSize{
+		small(700,700),medium(800, 800),large(900,900);
+		public final int width;
+		public final int height;
 		private ScreenSize(int width, int height) {
 			this.height = height;
 			this.width = width;

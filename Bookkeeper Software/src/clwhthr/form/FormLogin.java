@@ -1,4 +1,4 @@
-package clwhthr.form.login;
+package clwhthr.form;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -6,6 +6,8 @@ import java.io.IOException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -18,6 +20,7 @@ import org.eclipse.ui.internal.forms.widgets.FormHeading;
 import com.sun.glass.ui.Screen;
 
 import clwhthr.account.Account;
+import clwhthr.account.AccountHandler;
 import clwhthr.io.AccountFileGetter;
 import clwhthr.io.AccountFileReader;
 import clwhthr.main.Main;
@@ -31,6 +34,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 
 public class FormLogin {
@@ -39,6 +44,7 @@ public class FormLogin {
 	private Text textAccount;
 	private Text textPassword;
 	private Button buttonRemember;
+	private Button buttonLogin;
 	private FormRegister formRegister;
 
 	/**
@@ -62,10 +68,20 @@ public class FormLogin {
 		createContents();
 		shell.open();
 		shell.layout();
+		shell.addTraverseListener(new TraverseListener() {
+			
+			@Override
+			public void keyTraversed(TraverseEvent event) {
+				 if (event.detail == SWT.TRAVERSE_RETURN){ 
+					 if(event.keyCode == SWT.CR || event.keyCode == SWT.KEYPAD_CR) {
+						 buttonLogin.notifyListeners(SWT.Selection, new Event());
+					 }
+				 }
+				
+			}
+		});
 		FormHelper.setCenter(this.shell);
 		formRegister = new FormRegister(shell);
-		
-		
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
@@ -97,7 +113,7 @@ public class FormLogin {
 		textPassword = new Text(shell, SWT.BORDER|SWT.PASSWORD);
 		textPassword.setBounds(10, 79, 220, 25);
 		
-		Button buttonLogin = new Button(shell, SWT.NONE);
+		buttonLogin = new Button(shell, SWT.NONE);
 		buttonLogin.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -107,7 +123,7 @@ public class FormLogin {
 					dialog.setMessage("µn¤J¦¨¥\!");
 					dialog.open();
 					
-					FormMenu menu = new FormMenu();
+					FormMain menu = new FormMain();
 					shell.close();
 					menu.open();
 				}else {
@@ -145,18 +161,10 @@ public class FormLogin {
 	
 	private boolean login() {
 		String name = textAccount.getText();
-		String passhash = SHA.getResult(textPassword.getText());
-		try {
-			
-			AccountFileReader reader = new AccountFileReader(AccountFileGetter.getFile(name));
-			Account account = reader.getAccount();
-			reader.close();
-			if(account.getPasswordHash().equals(passhash) == false)return false;
-			
-		} catch (FileNotFoundException e) {
-			return false;
-		}
-		Main.currentAccount = new Account(name, passhash);
+		String password = textPassword.getText();
+		String hash = SHA.getResult(password);
+		if(AccountHandler.getInstance().login(textAccount.getText(),hash) == false)return false;
+		Main.currentAccount = new Account(name, hash);
 		Config config = Config.getInstance();
 		boolean remember = buttonRemember.getSelection();
 		config.setRememberPassword(remember);

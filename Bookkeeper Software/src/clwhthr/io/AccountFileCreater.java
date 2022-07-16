@@ -1,5 +1,7 @@
 package clwhthr.io;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,24 +11,26 @@ import clwhthr.account.Account;
 import clwhthr.exception.FileExistException;
 import clwhthr.setting.Config;
 
-public class AccountFileCreater {
+public class AccountFileCreater extends FileCreater{
 	
-	
-	public static void create(String name, String passwordHash) throws FileExistException {
-		Config config = Config.getInstance();
-		Path filePath = Paths.get(config.getAccountPath().toString(), name +".account");
-		if(Files.exists(filePath))throw new FileExistException("accountFileHasExist");
-		try {
-			Files.createFile(filePath);
-			AccountFileWriter writer = new AccountFileWriter(filePath.toFile());
-			writer.println(passwordHash);
-			writer.close();
-		} catch (IOException e) {
-			// TODO 自動產生的 catch 區塊
-			e.printStackTrace();
-		}
+	public void createFile(String name, String passwordHash) throws FileExistException, FileNotFoundException {
+		super.createFile(name);
+		File file = new AccountFileGetter(name).getFile();
+		AccountFileWriter writer = new AccountFileWriter(file);
+		writer.println(passwordHash);
+		writer.close();
 	}
-	public static void create(Account account) throws FileExistException {
-		create(account.getName(), account.getPasswordHash());
+	public void createFile(Account account) throws FileExistException, FileNotFoundException {
+		createFile(account.getName(),account.getPasswordHash());
+	}
+	@Override
+	Path getFileDirectory() {
+		// TODO 自動產生的方法 Stub
+		return config.getAccountPath();
+	}
+	@Override
+	String getFormat() {
+		// TODO 自動產生的方法 Stub
+		return "account";
 	}
 }

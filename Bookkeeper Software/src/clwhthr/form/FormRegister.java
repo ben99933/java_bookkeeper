@@ -1,4 +1,4 @@
-package clwhthr.form.login;
+package clwhthr.form;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -20,6 +20,8 @@ import clwhthr.util.hash.MD5;
 import sun.launcher.resources.launcher;
 
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
@@ -36,14 +38,22 @@ public class FormRegister {
 	private Text textAccount;
 	private Text textPassword;
 	private Text textPassword2;
-	private Button buutonBack;
+	private Button buttonBack;
+	private Button buttonRegister;
 	private Text textInfo;
 
 
 	public FormRegister(Shell parent) {
 		this.parent = parent;
 	}
-
+	public static void main(String[] args) {
+		try {
+			FormRegister window = new FormRegister(new Shell());
+			window.open();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	/**
 	 * Open the window.
 	 */
@@ -64,14 +74,14 @@ public class FormRegister {
 	 * Create contents of the window.
 	 */
 	protected void createContents() {
-		shell = new Shell(SWT.DIALOG_TRIM);
+		shell = new Shell(SWT.BORDER | SWT.TITLE);
 		shell.setMinimumSize(new Point(400, 270));
 		shell.setSize(500, 270);
 		shell.setText("\u8A3B\u518A\u5E33\u865F");
 		shell.addListener(SWT.CLOSE, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
-				parent.setEnabled(true);
+				buttonBack.setSelection(true);
 			}
 		});
 		shell.setLayout(null);
@@ -103,7 +113,7 @@ public class FormRegister {
 		label_2.setSize(129, 19);
 		label_2.setText("\u518D\u6B21\u8F38\u5165\u60A8\u7684\u5BC6\u78BC");
 		
-		Button buttonRegister = new Button(shell, SWT.NONE);
+		buttonRegister = new Button(shell, SWT.NONE);
 		buttonRegister.setLocation(380, 186);
 		buttonRegister.setSize(94, 29);
 		buttonRegister.addSelectionListener(new SelectionAdapter() {
@@ -114,17 +124,17 @@ public class FormRegister {
 		});
 		buttonRegister.setText("\u8A3B\u518A");
 		
-		buutonBack = new Button(shell, SWT.NONE);
-		buutonBack.setLocation(10, 186);
-		buutonBack.setSize(94, 29);
-		buutonBack.addSelectionListener(new SelectionAdapter() {
+		buttonBack = new Button(shell, SWT.NONE);
+		buttonBack.setLocation(10, 186);
+		buttonBack.setSize(94, 29);
+		buttonBack.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
 				parent.setEnabled(true);
 				shell.close();
 			}
 		});
-		buutonBack.setText("\u8FD4\u56DE");
+		buttonBack.setText("\u8FD4\u56DE");
 		
 		textInfo = new Text(shell, SWT.MULTI);
 		textInfo.setEditable(false);
@@ -170,7 +180,7 @@ public class FormRegister {
 		dialog.setText("註冊成功");
 		dialog.setMessage("您的帳號已註冊完成\n請登入");
 		int result = dialog.open();
-		buutonBack.notifyListeners(SWT.Selection, new Event());
+		buttonBack.notifyListeners(SWT.Selection, new Event());
 	}
 
 }
