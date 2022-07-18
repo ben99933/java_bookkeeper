@@ -1,6 +1,6 @@
 package clwhthr.exception;
 
-public class DateFormatException extends Exception{
+public class DateFormatException extends FormatException{
 	
 	
 	public DateFormatException(String info) {

@@ -9,13 +9,15 @@ import javax.xml.ws.WebServiceException;
 
 import com.sun.xml.internal.ws.Closeable;
 
+import clwhthr.util.Debug;
+
 public class CSVWriter implements Closeable{
 
 	BufferedWriter writer;
 	File file;
 	public CSVWriter(File file) throws IOException {
 		this.file = file;
-		writer = new BufferedWriter(new FileWriter(file));
+		writer = new BufferedWriter(new FileWriter(file,true));
 	}
 	@Override
 	public void close() throws WebServiceException {
@@ -29,9 +31,10 @@ public class CSVWriter implements Closeable{
 	public void write(String...args) throws IOException{
 		boolean flag = false;
 		for(int i = 0;i<args.length;i++) {
+			if(flag) {
+				writer.write(",");
+			}else flag = true;
 			writer.write(args[i]);
-			if(flag)writer.write(",");
-			else flag = true;
 		}
 		writer.newLine();
 	}

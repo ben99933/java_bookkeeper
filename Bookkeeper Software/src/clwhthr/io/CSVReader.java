@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -14,6 +15,7 @@ import javax.xml.ws.WebServiceException;
 import com.sun.xml.internal.ws.Closeable;
 
 import clwhthr.exception.FileFormatException;
+import clwhthr.util.Debug;
 import clwhthr.util.FileHelper;
 
 public class CSVReader implements Closeable{
@@ -26,16 +28,12 @@ public class CSVReader implements Closeable{
 		if(format.equals("csv") == false)throw new FileFormatException(format);
 		reader = new BufferedReader(new FileReader(file));
 	}
-	public List<List<String>> getContents() throws IOException{
-		List<List<String>> content = new ArrayList<List<String>>();
+	public List<String[]> getContents() throws IOException{
+		List<String[]> content = new LinkedList<String[]>();
 		String line;
 		while((line = reader.readLine()) != null) {
-			ArrayList<String>list = new ArrayList<String>();
 			String[] array = line.split(",");
-			for (String string : array) {
-				list.add(string);
-			}
-			content.add(list);
+			content.add(array);
 		}
 		return content;
 	}
@@ -46,7 +44,5 @@ public class CSVReader implements Closeable{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
-
 }

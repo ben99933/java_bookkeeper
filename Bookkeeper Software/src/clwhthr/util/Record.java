@@ -1,22 +1,50 @@
 package clwhthr.util;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Record{
 	
 	private Date date;
 	private int money;
 	private Type type;
-	
-	public Record(Date date,int money,Type type) {
+	private String note;
+	public Record(Date date,Type type,int money,String note) {
 		this.date = date;
 		this.money = money;
 		this.type = type;
+		this.note = note;
 	}
-	
+	public Date getDate() {
+		return this.date;
+	}
+	public int getMoney() {
+		return this.money;
+	}
+	public Type getType() {
+		return this.type;
+	}
+	public String getNote() {
+		return this.note;
+	}
+	public String[] toStringArray() {
+		List<String>list = new ArrayList<String>();
+		list.add(String.valueOf(date.getYear()));
+		list.add(String.valueOf(date.getMonth()));
+		list.add(String.valueOf(date.getDay()));
+		list.add(String.valueOf(type.ordinal()));
+		list.add(String.valueOf(money));
+		if(note != null || note.equals("") == false)list.add(note);
+		else list.add("none");
+		
+		String array[] = new String[list.size()];
+		list.toArray(array);
+		return array;
+	}
 	@Override
 	public String toString() {
-		return date.toString() + type.toString() + money;
+		return date.toString() + type.toString() + money + note;
 	}
 	@Override
 	public int hashCode() {
@@ -29,5 +57,17 @@ public class Record{
 	}
 	public enum Type{
 		food,traffic,social,shopping,entertainment,other;
+		public static String[] names() {
+			Type[] types = Type.values();
+			String[] list = new String[types.length];
+			for(int i = 0;i<list.length;i++) {
+				list[i] = types[i].name();
+			}
+			return list;
+		}
+		public String getLocalName() {
+			return this.name();
+		}
 	}
+	
 }
