@@ -15,9 +15,9 @@ public class CSVWriter implements Closeable{
 
 	BufferedWriter writer;
 	File file;
-	public CSVWriter(File file) throws IOException {
+	public CSVWriter(File file,boolean append) throws IOException {
 		this.file = file;
-		writer = new BufferedWriter(new FileWriter(file,true));
+		writer = new BufferedWriter(new FileWriter(file,append));
 	}
 	@Override
 	public void close() throws WebServiceException {

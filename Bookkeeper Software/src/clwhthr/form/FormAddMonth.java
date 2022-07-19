@@ -100,7 +100,7 @@ public class FormAddMonth extends Dialog {
 		timeBox = new DateTime(shell, SWT.BORDER | SWT.SHORT);
 		timeBox.setBounds(49, 50, 309, 37);
 		Date today = Date.getToday();
-		timeBox.setDate(today.getYear(), today.getMonth()+1, today.getDay());
+		timeBox.setDate(today.getYear(), today.getMonth()-1, today.getDay());
 	}
 	private void close() {
 		parent.setEnabled(true);

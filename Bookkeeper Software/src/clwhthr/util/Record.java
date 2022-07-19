@@ -15,6 +15,7 @@ public class Record{
 		this.money = money;
 		this.type = type;
 		this.note = note;
+		if(note.length() == 0 || note.equals(""))note = "none";
 	}
 	public Date getDate() {
 		return this.date;

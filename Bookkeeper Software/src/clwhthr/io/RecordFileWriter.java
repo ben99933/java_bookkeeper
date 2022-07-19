@@ -11,7 +11,7 @@ import com.sun.xml.internal.ws.Closeable;
 
 public class RecordFileWriter extends CSVWriter{
 	
-	public RecordFileWriter(File file) throws IOException {
-		super(file);
+	public RecordFileWriter(File file, boolean append) throws IOException {
+		super(file,append);
 	}
 }

@@ -29,7 +29,7 @@ public class CSVReader implements Closeable{
 		reader = new BufferedReader(new FileReader(file));
 	}
 	public List<String[]> getContents() throws IOException{
-		List<String[]> content = new LinkedList<String[]>();
+		List<String[]> content = new ArrayList<String[]>();
 		String line;
 		while((line = reader.readLine()) != null) {
 			String[] array = line.split(",");

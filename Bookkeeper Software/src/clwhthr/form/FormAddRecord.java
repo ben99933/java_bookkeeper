@@ -131,7 +131,6 @@ public class FormAddRecord extends Dialog {
 					
 					close();
 				} catch (Exception exception) {
-					exception.printStackTrace();
 					MessageBox dialog = new MessageBox(shell, SWT.ICON_WARNING);
 					dialog.setText("錯誤");
 					dialog.setMessage("輸入的格式錯誤");
