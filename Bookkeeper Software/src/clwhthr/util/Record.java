@@ -4,6 +4,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.wb.swt.SWTResourceManager;
+import clwhthr.util.form.FormHelper;
+
 public class Record{
 	
 	private Date date;
@@ -57,7 +61,18 @@ public class Record{
 		return this.hashCode() == obj.hashCode();
 	}
 	public enum Type{
-		food,traffic,social,shopping,entertainment,other;
+		
+		food(FormHelper.GREEN),
+		traffic(FormHelper.BLUE),
+		social(FormHelper.RED),
+		shopping(FormHelper.YELLOW),
+		entertainment(FormHelper.PURPLE),
+		other(FormHelper.ORANGE);
+		
+		private Color color = null;
+		private Type(Color color) {
+			this.color = color;
+		}
 		public static String[] names() {
 			Type[] types = Type.values();
 			String[] list = new String[types.length];
@@ -69,6 +84,10 @@ public class Record{
 		public String getLocalName() {
 			return this.name();
 		}
+		public Color getColor() {
+			return this.color;
+		}
+		
 	}
 	
 }

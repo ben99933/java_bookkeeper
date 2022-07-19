@@ -42,6 +42,7 @@ import clwhthr.util.Record.Type;
 import clwhthr.util.form.FormHelper;
 import clwhthr.util.form.ImageHelper;
 import clwhthr.util.form.FormHelper.ScreenSize;
+import javafx.scene.chart.BarChart;
 
 import org.eclipse.swt.custom.ViewForm;
 import org.eclipse.swt.widgets.Composite;
@@ -64,6 +65,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TouchListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridLayout;
@@ -79,6 +81,12 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.widgets.TreeColumn;
+import org.eclipse.swtchart.Chart;
+import org.eclipse.swtchart.IBarSeries;
+import org.eclipse.swtchart.ICircularSeries;
+import org.eclipse.swtchart.ILineSeries;
+import org.eclipse.swtchart.ISeries.SeriesType;
+import org.eclipse.swtchart.extensions.core.IChartSeriesData;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.custom.TableCursor;
 import org.eclipse.swt.custom.TableEditor;
@@ -127,7 +135,12 @@ public class FormMain {
 	private Text textAverage;
 	private Button buttonOperationCheckAll;
 	
+	private Chart barChart;
+	private Chart lineChart;
+	private Chart pieChart;
 	
+	private int totalday = 0;
+	private Button buttonSetting;
 	
 	
 	/**
@@ -193,7 +206,7 @@ public class FormMain {
 		lableDate.setText("0000\u5E7400\u6708");
 		
 		tabFolder = new TabFolder(compositeRecordDay, SWT.NONE);
-		tabFolder.setBounds(10, 61, 542, 662);
+		tabFolder.setBounds(10, 61, 542, 426);
 		
 		tabItemTable = new TabItem(tabFolder, SWT.NONE);
 		tabItemTable.setText("\u8A73\u7D30\u8CC7\u6599");
@@ -209,7 +222,7 @@ public class FormMain {
 		table.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
-				checkedItems = getCheckedItems(table);
+				checkedItems = FormHelper.getCheckedItems(table);
 				buttonOperationDelete.setEnabled(checkedItems.size() > 0 ? true : false);
 			}
 		});
@@ -239,31 +252,6 @@ public class FormMain {
 		columnNote.setWidth(147);
 		columnNote.setText("\u5099\u8A3B");
 		
-		Label labelTitleAnalyse = new Label(compositeTable, SWT.NONE);
-		labelTitleAnalyse.setFont(SWTResourceManager.getFont("Microsoft JhengHei UI", 12, SWT.NORMAL));
-		labelTitleAnalyse.setBounds(10, 396, 80, 25);
-		labelTitleAnalyse.setText("\u7D71\u8A08\u8CC7\u6599");
-		
-		Label labelSum = new Label(compositeTable, SWT.NONE);
-		labelSum.setBounds(10, 427, 45, 19);
-		labelSum.setText("\u7E3D\u82B1\u8CBB");
-		
-		textSpendSum = new Text(compositeTable, SWT.NONE);
-		textSpendSum.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		textSpendSum.setText("0");
-		textSpendSum.setEditable(false);
-		textSpendSum.setBounds(97, 427, 114, 25);
-		
-		labelAverage = new Label(compositeTable, SWT.NONE);
-		labelAverage.setText("\u5E73\u5747\u82B1\u8CBB");
-		labelAverage.setBounds(10, 458, 60, 19);
-		
-		textAverage = new Text(compositeTable, SWT.NONE);
-		textAverage.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		textAverage.setText("0");
-		textAverage.setEditable(false);
-		textAverage.setBounds(97, 458, 114, 25);
-		
 		buttonOperationCheckAll = new Button(compositeTable, SWT.NONE);
 		buttonOperationCheckAll.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -280,18 +268,36 @@ public class FormMain {
 		
 		compositeBarChart = new Composite(tabFolder, SWT.BORDER);
 		tabItemBarChart.setControl(compositeBarChart);
+		barChart = new Chart(compositeBarChart, SWT.NONE);
+		barChart.getTitle().setText("消費紀錄");
+		barChart.getAxisSet().getXAxis(0).getTitle().setText("日期");
+		barChart.getAxisSet().getYAxis(0).getTitle().setText("金額");
+		barChart.setBounds(10, 10, 510, 370);
+		
+		
 		
 		tabItemPieChart = new TabItem(tabFolder, SWT.NONE);
 		tabItemPieChart.setText("\u5713\u9905\u5716");
 		
 		compositePieChart = new Composite(tabFolder, SWT.BORDER);
 		tabItemPieChart.setControl(compositePieChart);
+		pieChart = new Chart(compositePieChart, SWT.NONE);
+		pieChart.getTitle().setText("各項佔比");
+		pieChart.setBounds(10, 10, 510, 370);
+		
 		
 		tabItemLineChart = new TabItem(tabFolder, SWT.NONE);
 		tabItemLineChart.setText("\u6298\u7DDA\u5716");
 		
 		compositeLineChart = new Composite(tabFolder, SWT.BORDER);
 		tabItemLineChart.setControl(compositeLineChart);
+		lineChart = new Chart(compositeLineChart, SWT.NONE);
+		lineChart.getTitle().setText("消費紀錄");
+		lineChart.getAxisSet().getXAxis(0).getTitle().setText("日期");
+		lineChart.getAxisSet().getYAxis(0).getTitle().setText("金額");
+		lineChart.setBounds(10, 10, 510, 370);
+		
+		
 		
 		buttonOperationDelete = new Button(compositeRecordDay, SWT.NONE);
 		buttonOperationDelete.setBounds(234, 10, 45, 45);
@@ -343,11 +349,41 @@ public class FormMain {
 				}
 				writer.close();
 				
-				updateRecordTable();
+				updateRecord();
 				
 			}
 		});
 		buttonOperationDelete.setEnabled(false);
+		
+		Label labelTitleAnalyse = new Label(compositeRecordDay, SWT.NONE);
+		labelTitleAnalyse.setBounds(10, 493, 80, 25);
+		labelTitleAnalyse.setFont(SWTResourceManager.getFont("Microsoft JhengHei UI", 12, SWT.NORMAL));
+		labelTitleAnalyse.setText("\u7D71\u8A08\u8CC7\u6599");
+		labelTitleAnalyse.setBackground(FormHelper.BACKGROUND);
+		
+		Label labelSum = new Label(compositeRecordDay, SWT.NONE);
+		labelSum.setBounds(10, 524, 45, 19);
+		labelSum.setText("\u7E3D\u82B1\u8CBB");
+		labelSum.setBackground(FormHelper.BACKGROUND);
+		
+		labelAverage = new Label(compositeRecordDay, SWT.NONE);
+		labelAverage.setBounds(10, 555, 60, 19);
+		labelAverage.setText("\u5E73\u5747\u82B1\u8CBB");
+		labelAverage.setBackground(FormHelper.BACKGROUND);
+		
+		textAverage = new Text(compositeRecordDay, SWT.NONE);
+		textAverage.setBounds(97, 555, 114, 25);
+		textAverage.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		textAverage.setText("0");
+		textAverage.setEditable(false);
+		textAverage.setBackground(FormHelper.BACKGROUND);
+		
+		textSpendSum = new Text(compositeRecordDay, SWT.NONE);
+		textSpendSum.setBounds(97, 524, 114, 25);
+		textSpendSum.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		textSpendSum.setText("0");
+		textSpendSum.setEditable(false);
+		textSpendSum.setBackground(FormHelper.BACKGROUND);
 		
 		Composite compositeRecordMonth = new Composite(composite, SWT.BORDER | SWT.V_SCROLL | SWT.EMBEDDED);
 		compositeRecordMonth.setBounds(14, 10, 264, 737);
@@ -399,6 +435,7 @@ public class FormMain {
 		
 		buttonAddRecord = new Button(compositeOption, SWT.NONE);
 		buttonAddRecord.setBounds(142, 0, 60, 60);
+		buttonAddRecord.setBackground(FormHelper.BACKGROUND);
 		buttonAddRecord.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
@@ -413,7 +450,7 @@ public class FormMain {
 					RecordFileWriter writer = new RecordFileWriter(csv,true);
 					writer.write(record.toStringArray());
 					writer.close();
-					updateRecordTable();
+					updateRecord();
 					
 				} catch (FileNotFoundException e) {
 					MessageBox error = new MessageBox(shell,SWT.ICON_WARNING);
@@ -431,6 +468,18 @@ public class FormMain {
 		});
 		buttonAddRecord.setImage(ImageHelper.resizeImage(shell.getDisplay(), SWTResourceManager.getImage(FormMain.class, "/assets/clwhthr/gui/image/add.png"), 45, 45));
 		
+		buttonSetting = new Button(compositeOption, SWT.NONE);
+		buttonSetting.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FormSetting dialog = new FormSetting(shell);
+				shell.setEnabled(false);
+				dialog.open();
+			}
+		});
+		buttonSetting.setBounds(208, 0, 60, 60);
+		buttonSetting.setBackground(FormHelper.BACKGROUND);
+		buttonSetting.setImage(ImageHelper.resizeImage(shell.getDisplay(), SWTResourceManager.getImage(FormMain.class, "/assets/clwhthr/gui/image/setting.png"), 60, 60));
 		
 		buttonAddRecordMonth.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -538,8 +587,14 @@ public class FormMain {
 			e.printStackTrace();
 		}
 		
+		updateRecord();
+	}
+	private void updateRecord() {
+		shell.setEnabled(false);
 		updateRecordTable();
-		
+		updateChart();
+		tabFolder.setSelection(0);
+		shell.setEnabled(true);
 	}
 	private void updateRecordTable() {
 		clearRecordTable();
@@ -552,8 +607,8 @@ public class FormMain {
 				List<String[]> list = reader.getContents();
 				Debug.log(this.getClass(), "list.size=%d",list.size());
 				reader.close();
-				int count = 0;
-				int totalday = 0;
+				
+				totalday = 0;
 				int spendSum = 0;
 				Iterator<String[]> iterator = list.iterator();
 				while(iterator.hasNext()) {
@@ -563,20 +618,23 @@ public class FormMain {
 					int money = Integer.valueOf(array[4]);
 					String note = array[5];
 					recordList.add(new Record(date,type,money,note));
-					TableItem recorditem = new TableItem(table, SWT.NONE);
-					recorditem.setText(0, String.valueOf(count));
-					recorditem.setText(1, date.getMonth() + "/" + date.getDay());
-					recorditem.setText(2, type.name());
-					recorditem.setText(3,String.valueOf(money));
-					
-					if(note.equals("none") == false)recorditem.setText(4,note);
-					else recorditem.setText(4,"");
-					
-					count++;
 					if(totalday < date.getDay())totalday = date.getDay();
 					spendSum += money;
 				}
-				
+				int count = 0;
+				recordList.sort(Comparator.comparing(Record::getDate).thenComparing(Record::getMoney));
+				for (Record record : recordList) {
+					TableItem recorditem = new TableItem(table, SWT.NONE);
+					Date date = record.getDate();
+					recorditem.setText(0, String.valueOf(count));
+					recorditem.setText(1, date.getMonth() + "/" + date.getDay());
+					recorditem.setText(2, record.getType().name());
+					recorditem.setText(3,String.valueOf(record.getMoney()));
+					if(record.getNote().equals("none") == false)recorditem.setText(4,record.getNote());
+					else recorditem.setText(4,"");
+					
+					count++;
+				}
 				textSpendSum.setText(String.valueOf(spendSum));
 				textAverage.setText(String.valueOf(Math.round((float)spendSum / (float)totalday)));
 				
@@ -585,12 +643,60 @@ public class FormMain {
 			}
 		}
 	}
+	private void updateChart() {
+		
+		Record.Type types[] = Record.Type.values();
+		double typeMoneySum[] = new double[types.length];
+		for(int i = 0;i<typeMoneySum.length;i++)typeMoneySum[i] = 0;
+		double moneyDailySum[] = new double[totalday];
+		for(int i = 0;i<moneyDailySum.length;i++)moneyDailySum[i] = 0;
+		String typeName[] = new String[types.length];
+		for(int i = 0;i<types.length;i++)typeName[i] = types[i].getLocalName();
+		int moneySum = 0;
+		
+		if(recordList.size()==0){
+			
+		}
+		else {
+			Record[] records = new Record[recordList.size()];
+			recordList.toArray(records);
+			for(int i = 0;i<records.length;i++) {
+				Record record = records[i];
+				moneySum += record.getMoney();
+				typeMoneySum[record.getType().ordinal()] += record.getMoney();
+				moneyDailySum[record.getDate().getDay()-1] += record.getMoney();
+			}
+		}
+		
+		//chart
+		try {
+			barChart.getSeriesSet().deleteSeries("bar series");
+			lineChart.getSeriesSet().deleteSeries("line series");
+			pieChart.getSeriesSet().deleteSeries("pie series");
+		}catch (Exception e) {
+			
+		}
+		IBarSeries<?> barSeries = (IBarSeries<?>)barChart.getSeriesSet().createSeries(SeriesType.BAR,"bar series");
+		ILineSeries<?> lineSeries = (ILineSeries<?>)lineChart.getSeriesSet().createSeries(SeriesType.LINE,"line series");
+		ICircularSeries<?> pieSeries = (ICircularSeries<?>)pieChart.getSeriesSet().createSeries(SeriesType.PIE,"pie series");
+		//長條圖
+		barSeries.setYSeries(moneyDailySum);
+		barChart.getAxisSet().adjustRange();
+		Debug.log(this.getClass(), "bar chart complete");
+		//折線圖
+		lineSeries.setYSeries(moneyDailySum);
+		lineChart.getAxisSet().adjustRange();
+		Debug.log(this.getClass(), "line chart complete");
+		//圓餅圖
+		pieSeries.setSeries(typeName, typeMoneySum);
+		
+		Debug.log(this.getClass(), "pie chart complete");
+		
+	}
+	
 	private void clearRecordTable() {
 		recordList.clear();
 		checkedItems.clear();
 		table.removeAll();
-	}
-	private List<TableItem> getCheckedItems(Table table) {
-		return Arrays.stream(table.getItems()).filter(item -> item.getChecked()).collect(Collectors.toList());
 	}
 }
