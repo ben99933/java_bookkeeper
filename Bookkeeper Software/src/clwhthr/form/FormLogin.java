@@ -21,9 +21,11 @@ import com.sun.glass.ui.Screen;
 
 import clwhthr.account.Account;
 import clwhthr.account.AccountHandler;
+import clwhthr.form.dialog.FormRegister;
 import clwhthr.io.AccountFileGetter;
 import clwhthr.io.AccountFileReader;
 import clwhthr.main.Main;
+import clwhthr.resources.I18n;
 import clwhthr.setting.Config;
 import clwhthr.util.Debug;
 import clwhthr.util.form.FormHelper;
@@ -77,7 +79,6 @@ public class FormLogin {
 						 buttonLogin.notifyListeners(SWT.Selection, new Event());
 					 }
 				 }
-				
 			}
 		});
 		FormHelper.setCenter(this.shell);
@@ -96,19 +97,19 @@ public class FormLogin {
 		Config config = Config.getInstance();
 		shell = new Shell(SWT.DIALOG_TRIM);
 		shell.setSize(372, 237);
-		shell.setText("\u767B\u5165");
+		shell.setText(I18n.format("form.login.shell.name", new Object[0]));
 		shell.setLocation(0, 0);
 		
-		Label label = new Label(shell, SWT.NONE);
-		label.setText("\u5E33\u865F");
-		label.setBounds(10, 10, 40, 19);
+		Label labelAccount = new Label(shell, SWT.NONE);
+		labelAccount.setText(I18n.format("form.login.label.account.name", new Object[0]));
+		labelAccount.setBounds(10, 10, 220, 19);
 		
 		textAccount = new Text(shell, SWT.BORDER);
 		textAccount.setBounds(10, 29, 220, 25);
 		
-		Label label_1 = new Label(shell, SWT.NONE);
-		label_1.setText("\u5BC6\u78BC");
-		label_1.setBounds(10, 60, 40, 19);
+		Label labelPassword = new Label(shell, SWT.NONE);
+		labelPassword.setText(I18n.format("form.login.label.password.name", new Object[0]));
+		labelPassword.setBounds(10, 60, 220, 19);
 		
 		textPassword = new Text(shell, SWT.BORDER|SWT.PASSWORD);
 		textPassword.setBounds(10, 79, 220, 25);
@@ -119,8 +120,8 @@ public class FormLogin {
 			public void widgetSelected(SelectionEvent e) {
 				if(login()) {
 					MessageBox dialog = new MessageBox(shell);
-					dialog.setText("");
-					dialog.setMessage("登入成功!");
+					dialog.setText(I18n.format("msg.loginSucceed.title.name", new Object[0]));
+					dialog.setMessage(I18n.format("msg.loginSucceed.text", new Object[0]));
 					dialog.open();
 					
 					FormMain menu = new FormMain();
@@ -128,14 +129,14 @@ public class FormLogin {
 					menu.open();
 				}else {
 					MessageBox dialog = new MessageBox(shell,SWT.ICON_WARNING);
-					dialog.setText("錯誤");
-					dialog.setMessage("帳號或密碼輸入錯誤!");
+					dialog.setText(I18n.format("msg.error.title.name", new Object[0]));
+					dialog.setMessage(I18n.format("msg.loginFailed.text", new Object[0]));
 					dialog.open();
 				}
 			}
 		});
 		buttonLogin.setBounds(250, 151, 94, 29);
-		buttonLogin.setText("\u767B\u5165");
+		buttonLogin.setText(I18n.format("form.login.button.login.name", new Object[0]));
 		
 		
 		Button buttonRegister = new Button(shell, SWT.NONE);
@@ -147,11 +148,11 @@ public class FormLogin {
 			}
 		});
 		buttonRegister.setBounds(10, 151, 94, 29);
-		buttonRegister.setText("\u8A3B\u518A\u5E33\u865F");
+		buttonRegister.setText(I18n.format("form.login.button.register.name", new Object[0]));
 		
 		buttonRemember = new Button(shell, SWT.CHECK);
-		buttonRemember.setBounds(10, 110, 94, 19);
-		buttonRemember.setText("\u8A18\u4F4F\u5E33\u865F");
+		buttonRemember.setBounds(10, 110, 220, 19);
+		buttonRemember.setText(I18n.format("form.login.button.remember.name", new Object[0]));
 		if(config.getRememberPassword()) {
 			buttonRemember.setSelection(true);
 			textAccount.setText(config.getLastAccountName());

@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.Button;
 
 import clwhthr.main.Main;
 import clwhthr.setting.Config;
+import clwhthr.util.Debug;
 import clwhthr.util.FileHelper;
 
 public class RecordInitializer implements Initializer{
@@ -35,6 +36,7 @@ public class RecordInitializer implements Initializer{
 				return o1.compareTo(o2);
 			}
 		});
+		Debug.log(this.getClass(), "Record init complete");
 	}
 
 }

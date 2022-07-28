@@ -19,6 +19,8 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileSystemView;
 
 import clwhthr.account.Account;
+import clwhthr.resources.lang.Language;
+import clwhthr.resources.lang.Languages;
 import clwhthr.util.Debug;
 
 
@@ -35,6 +37,7 @@ public final class Config {
 	private ConfigOption rememberPassword;
 	private ConfigOption lastAccountName;
 	private ConfigOption screenSize;
+	private ConfigOption language;
 	
 	private Config() {
 		init();
@@ -87,13 +90,13 @@ public final class Config {
 		rememberPassword = new ConfigOption<Boolean>("RememberPassword", "false");
 		lastAccountName = new ConfigOption<String>("LastAccountName", "none");
 		screenSize = new ConfigOption<Integer>("ScreenSize","2");
+		language = new ConfigOption<String>("Language", Languages.en_US.getName());
 	}
 	private void buildConfigFile() throws IOException {
 		setDefaultConfig();
 		save();
 	}
 	private void readConfigFile() throws IOException {
-		
 		Properties configProperties = new Properties();
 		FileInputStream inputStream = new FileInputStream(configFile.getPath());
 		configProperties.load(inputStream);
@@ -120,6 +123,7 @@ public final class Config {
 		options.add(rememberPassword);
 		options.add(lastAccountName);
 		options.add(screenSize);
+		options.add(language);
 	}
 	public String getLastAccountName() {
 		if(getRememberPassword() == false)return null;
@@ -162,6 +166,15 @@ public final class Config {
 	}
 	public void setScreenSize(Integer size) {
 		screenSize.setValue(size.toString());
+	}
+	public String getLanguageName() {
+		return language.getValue();
+	}
+	public void setLanguage(Language lang) {
+		setLanguage(lang.getName().toString());
+	}
+	public void setLanguage(String string) {
+		language.setValue(string);
 	}
 	
 }

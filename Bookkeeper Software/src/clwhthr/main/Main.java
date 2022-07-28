@@ -54,6 +54,7 @@ public class Main {
 		    dialog.open();
 		    return;
 		}
+		InitializeHandler.prepare();
 		InitializeHandler.preInit();
 		Config config = Config.getInstance();
 		

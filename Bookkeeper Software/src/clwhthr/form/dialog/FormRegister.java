@@ -1,4 +1,4 @@
-package clwhthr.form;
+package clwhthr.form.dialog;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Text;
 import clwhthr.account.AccountHandler;
 import clwhthr.exception.FileExistException;
 import clwhthr.exception.StringFormatException;
+import clwhthr.resources.I18n;
 import clwhthr.util.Debug;
 import clwhthr.util.form.FormHelper;
 import clwhthr.util.hash.MD5;
@@ -30,8 +31,9 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Dialog;
 
-public class FormRegister {
+public class FormRegister extends Dialog{
 
 	protected Shell shell;
 	protected Shell parent;
@@ -44,6 +46,7 @@ public class FormRegister {
 
 
 	public FormRegister(Shell parent) {
+		super(parent);
 		this.parent = parent;
 	}
 	public static void main(String[] args) {
@@ -57,7 +60,7 @@ public class FormRegister {
 	/**
 	 * Open the window.
 	 */
-	protected void open() {
+	public void open() {
 		Display display = Display.getDefault();
 		createContents();
 		shell.open();
@@ -77,7 +80,7 @@ public class FormRegister {
 		shell = new Shell(SWT.BORDER | SWT.TITLE);
 		shell.setMinimumSize(new Point(400, 270));
 		shell.setSize(500, 270);
-		shell.setText("\u8A3B\u518A\u5E33\u865F");
+		shell.setText(I18n.format("form.register.shell.name", new Object[0]));
 		shell.addListener(SWT.CLOSE, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
@@ -86,19 +89,19 @@ public class FormRegister {
 		});
 		shell.setLayout(null);
 		
-		Label label = new Label(shell, SWT.NONE);
-		label.setLocation(10, 10);
-		label.setSize(40, 19);
-		label.setText("\u5E33\u865F");
+		Label labelAccount = new Label(shell, SWT.NONE);
+		labelAccount.setLocation(10, 10);
+		labelAccount.setSize(220, 19);
+		labelAccount.setText(I18n.format("form.register.label.account.name", new Object[0]));
 		
 		textAccount = new Text(shell, SWT.BORDER);
 		textAccount.setLocation(10, 35);
 		textAccount.setSize(220, 25);
 		
-		Label label_1 = new Label(shell, SWT.NONE);
-		label_1.setLocation(10, 65);
-		label_1.setSize(40, 19);
-		label_1.setText("\u5BC6\u78BC");
+		Label labelPassword = new Label(shell, SWT.NONE);
+		labelPassword.setLocation(10, 65);
+		labelPassword.setSize(220, 19);
+		labelPassword.setText(I18n.format("form.register.label.password.name", new Object[0]));
 		
 		textPassword = new Text(shell, SWT.BORDER);
 		textPassword.setLocation(10, 90);
@@ -108,10 +111,10 @@ public class FormRegister {
 		textPassword2.setLocation(10, 145);
 		textPassword2.setSize(220, 25);
 		
-		Label label_2 = new Label(shell, SWT.NONE);
-		label_2.setLocation(10, 120);
-		label_2.setSize(129, 19);
-		label_2.setText("\u518D\u6B21\u8F38\u5165\u60A8\u7684\u5BC6\u78BC");
+		Label labelPassword2 = new Label(shell, SWT.NONE);
+		labelPassword2.setLocation(10, 120);
+		labelPassword2.setSize(220, 19);
+		labelPassword2.setText(I18n.format("form.register.label.password2.name", new Object[0]));
 		
 		buttonRegister = new Button(shell, SWT.NONE);
 		buttonRegister.setLocation(380, 186);
@@ -122,7 +125,7 @@ public class FormRegister {
 				register();
 			}
 		});
-		buttonRegister.setText("\u8A3B\u518A");
+		buttonRegister.setText(I18n.format("form.register.button.register.name", new Object[0]));
 		
 		buttonBack = new Button(shell, SWT.NONE);
 		buttonBack.setLocation(10, 186);
@@ -134,11 +137,11 @@ public class FormRegister {
 				shell.close();
 			}
 		});
-		buttonBack.setText("\u8FD4\u56DE");
+		buttonBack.setText(I18n.format("form.register.button.back.name", new Object[0]));
 		
-		textInfo = new Text(shell, SWT.MULTI);
+		textInfo = new Text(shell, SWT.WRAP);
 		textInfo.setEditable(false);
-		textInfo.setText("\u5E33\u865F\u53CA\u5BC6\u78BC\u7684\u9577\u5EA6\u70BA6\u523030\u500B\u5B57\r\n\u50C5\u80FD\u5305\u542B\u82F1\u6587 \u6578\u5B57 \u53CA \u5E95\u7DDA\r\n\u958B\u982D\u5FC5\u9808\u70BA\u82F1\u6587");
+		textInfo.setText(I18n.format("form.register.label.info.text", new Object[0]));
 		textInfo.setBounds(268, 35, 216, 140);
 
 	}

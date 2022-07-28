@@ -25,6 +25,9 @@ import org.eclipse.swt.widgets.Shell;
 import clwhthr.exception.DateFormatException;
 import clwhthr.exception.FileExistException;
 import clwhthr.exception.FileFormatException;
+import clwhthr.form.dialog.FormAddMonth;
+import clwhthr.form.dialog.FormAddRecord;
+import clwhthr.form.dialog.FormSetting;
 import clwhthr.io.CSVCreater;
 import clwhthr.io.CSVGetter;
 import clwhthr.io.CSVReader;
@@ -33,12 +36,14 @@ import clwhthr.io.RecordFileGetter;
 import clwhthr.io.RecordFileWriter;
 import clwhthr.io.file.CSVFile;
 import clwhthr.main.Main;
+import clwhthr.record.Record;
+import clwhthr.record.RecordItemCreater;
+import clwhthr.record.Record.Type;
+import clwhthr.resources.I18n;
 import clwhthr.setting.Config;
 import clwhthr.util.Date;
 import clwhthr.util.Debug;
 import clwhthr.util.FileHelper;
-import clwhthr.util.Record;
-import clwhthr.util.Record.Type;
 import clwhthr.util.form.FormHelper;
 import clwhthr.util.form.ImageHelper;
 import clwhthr.util.form.FormHelper.ScreenSize;
@@ -97,20 +102,20 @@ import org.eclipse.swt.widgets.Text;
 public class FormMain {
 
 	protected Shell shell;
-	protected Composite composite;
-	protected Composite compositeRecordDay;
-	protected Composite compositeOption;
-	protected Button buttonSearch;
-	protected Button buttonAddRecordMonth;
+	private Composite composite;
+	private Composite compositeRecordDay;
+	private Composite compositeOption;
+	private Button buttonSearch;
+	private Button buttonAddRecordMonth;
 	private Button buttonAddRecord;
+	private Button buttonSetting;
 	
-	
+	private Composite compositeRecordMonth;
 	protected List<Button> buttonRecordMonth;
 	private Table table;
 	private TableColumn columnDate;
 	private TableColumn columnMoney;
 	private TableColumn columnSpendType;
-	private TableColumn columnIndex;
 	private TableColumn columnNote;
 	private Label lableDate;
 	
@@ -140,7 +145,8 @@ public class FormMain {
 	private Chart pieChart;
 	
 	private int totalday = 0;
-	private Button buttonSetting;
+	private int currentYear = 0;
+	private int currentMonth = 0;
 	
 	
 	/**
@@ -166,7 +172,7 @@ public class FormMain {
 		shell.layout();
 		FormHelper.setCenter(shell);
 		refreshRecordButton();
-		Debug.log(this.getClass(), "list.length=%d",buttonRecordMonth.size());
+		
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
@@ -186,7 +192,7 @@ public class FormMain {
 		checkedItems = new ArrayList<TableItem>();
 		
 		shell = new Shell(SWT.CLOSE | SWT.MIN | SWT.TITLE );
-		shell.setText("Bookkeeper");
+		shell.setText(I18n.format("form.main.shell.name", new Object[0]));
 		shell.setSize(size.width, size.height);
 		shell.setBackground(FormHelper.BACKGROUND);
 		shell.setLayout(null);
@@ -203,13 +209,13 @@ public class FormMain {
 		lableDate.setBackground(FormHelper.BACKGROUND);
 		lableDate.setFont(SWTResourceManager.getFont("Microsoft JhengHei UI", 24, SWT.NORMAL));
 		lableDate.setBounds(10, 10, 218, 45);
-		lableDate.setText("0000\u5E7400\u6708");
+		lableDate.setText(I18n.format("form.main.record.label.date","0000","00"));
 		
 		tabFolder = new TabFolder(compositeRecordDay, SWT.NONE);
 		tabFolder.setBounds(10, 61, 542, 426);
 		
 		tabItemTable = new TabItem(tabFolder, SWT.NONE);
-		tabItemTable.setText("\u8A73\u7D30\u8CC7\u6599");
+		tabItemTable.setText(I18n.format("form.main.tabitem.detail.name", new Object[0]));
 		
 		compositeTable = new Composite(tabFolder, SWT.BORDER);
 		tabItemTable.setControl(compositeTable);
@@ -227,30 +233,25 @@ public class FormMain {
 			}
 		});
 		
-		
-		columnIndex = new TableColumn(table, SWT.CENTER);
-		columnIndex.setResizable(false);
-		columnIndex.setWidth(63);
-		
 		columnDate = new TableColumn(table, SWT.CENTER);
 		columnDate.setResizable(false);
 		columnDate.setWidth(74);
-		columnDate.setText("\u65E5\u671F");
+		columnDate.setText(I18n.format("form.main.table.column.date.name", new Object[0]));
 		
 		columnSpendType = new TableColumn(table, SWT.CENTER);
 		columnSpendType.setResizable(false);
 		columnSpendType.setWidth(117);
-		columnSpendType.setText("\u6D88\u8CBB\u985E\u5225");
+		columnSpendType.setText(I18n.format("form.main.table.column.type.name", new Object[0]));
 		
 		columnMoney = new TableColumn(table, SWT.CENTER);
 		columnMoney.setResizable(false);
 		columnMoney.setWidth(100);
-		columnMoney.setText("\u91D1\u984D");
+		columnMoney.setText(I18n.format("form.main.table.column.money.name", new Object[0]));
 		
 		columnNote = new TableColumn(table, SWT.NONE);
 		columnNote.setResizable(false);
 		columnNote.setWidth(147);
-		columnNote.setText("\u5099\u8A3B");
+		columnNote.setText(I18n.format("form.main.table.column.note.name", new Object[0]));
 		
 		buttonOperationCheckAll = new Button(compositeTable, SWT.NONE);
 		buttonOperationCheckAll.addSelectionListener(new SelectionAdapter() {
@@ -261,40 +262,40 @@ public class FormMain {
 			}
 		});
 		buttonOperationCheckAll.setBounds(0, 361, 94, 29);
-		buttonOperationCheckAll.setText("\u5168\u90E8\u9078\u53D6");
+		buttonOperationCheckAll.setText(I18n.format("form.main.button.checkAll.name", new Object[0]));
 		
 		tabItemBarChart = new TabItem(tabFolder, SWT.NONE);
-		tabItemBarChart.setText("\u9577\u689D\u5716");
+		tabItemBarChart.setText(I18n.format("form.main.tabitem.barChart.name", new Object[0]));
 		
 		compositeBarChart = new Composite(tabFolder, SWT.BORDER);
 		tabItemBarChart.setControl(compositeBarChart);
 		barChart = new Chart(compositeBarChart, SWT.NONE);
-		barChart.getTitle().setText("消費紀錄");
-		barChart.getAxisSet().getXAxis(0).getTitle().setText("日期");
-		barChart.getAxisSet().getYAxis(0).getTitle().setText("金額");
+		barChart.getTitle().setText(I18n.format("form.main.chart.bar.title.name"));
+		barChart.getAxisSet().getXAxis(0).getTitle().setText(I18n.format("record.date.name"));
+		barChart.getAxisSet().getYAxis(0).getTitle().setText(I18n.format("record.date.money"));
 		barChart.setBounds(10, 10, 510, 370);
 		
 		
 		
 		tabItemPieChart = new TabItem(tabFolder, SWT.NONE);
-		tabItemPieChart.setText("\u5713\u9905\u5716");
+		tabItemPieChart.setText(I18n.format("form.main.tabitem.pieChart.name", new Object[0]));
 		
 		compositePieChart = new Composite(tabFolder, SWT.BORDER);
 		tabItemPieChart.setControl(compositePieChart);
 		pieChart = new Chart(compositePieChart, SWT.NONE);
-		pieChart.getTitle().setText("各項佔比");
+		pieChart.getTitle().setText(I18n.format("form.main.chart.pie.title.name"));
 		pieChart.setBounds(10, 10, 510, 370);
 		
 		
 		tabItemLineChart = new TabItem(tabFolder, SWT.NONE);
-		tabItemLineChart.setText("\u6298\u7DDA\u5716");
+		tabItemLineChart.setText(I18n.format("form.main.tabitem.lineChart.name", new Object[0]));
 		
 		compositeLineChart = new Composite(tabFolder, SWT.BORDER);
 		tabItemLineChart.setControl(compositeLineChart);
 		lineChart = new Chart(compositeLineChart, SWT.NONE);
-		lineChart.getTitle().setText("消費紀錄");
-		lineChart.getAxisSet().getXAxis(0).getTitle().setText("日期");
-		lineChart.getAxisSet().getYAxis(0).getTitle().setText("金額");
+		lineChart.getTitle().setText(I18n.format("form.main.chart.line.title.name"));
+		lineChart.getAxisSet().getXAxis(0).getTitle().setText(I18n.format("record.date.name"));
+		lineChart.getAxisSet().getYAxis(0).getTitle().setText(I18n.format("record.money.name"));
 		lineChart.setBounds(10, 10, 510, 370);
 		
 		
@@ -307,30 +308,27 @@ public class FormMain {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
 				List<TableItem>checked = checkedItems;
+				List<Record> records = recordList;
 				int len = checked.size();
 				MessageBox dialog = new MessageBox(shell,SWT.ICON_QUESTION | SWT.CANCEL | SWT.OK);
 				dialog.setText("");
 				dialog.setMessage("請問是否要刪除這"+ len + "筆資料?");
 				int result = dialog.open();
 				if(result == SWT.CANCEL)return;
-				List<Record> records = recordList;
-				int year = Integer.valueOf(FileHelper.getFileName(currentRecordFile))/100;
+				
 				checked.stream().forEach(item ->{
-					String string = item.getText(0)+item.getText(1)+item.getText(2)+item.getText(3)+item.getText(4)+item.getText(5)+item.getText(6);
-					Debug.log(this.getClass(), "item=" + string);
-					int index = Integer.valueOf(item.getText(0));
-					int month = Integer.valueOf(item.getText(1).split("/")[0]);
-					int day = Integer.valueOf(item.getText(1).split("/")[1]);
+					int month = Integer.valueOf(item.getText(0).split("/")[0]);
+					int day = Integer.valueOf(item.getText(0).split("/")[1]);
 					Date date = null;
 					try {
-						date = new Date(year, month, day);
+						date = new Date(currentYear, month, day);
 					} catch (DateFormatException e) {
 						// TODO 自動產生的 catch 區塊
 						e.printStackTrace();
 					}
-					Record.Type type = Record.Type.valueOf(item.getText(2));
-					int money = Integer.valueOf(item.getText(3));
-					String note = item.getText(4);
+					Record.Type type = Record.Type.valueOfLocalname(item.getText(1));
+					int money = Integer.valueOf(item.getText(2));
+					String note = item.getText(3);
 					if(note.length() == 0 || note.equals(""))note = "none";
 					Record record = new Record(date, type, money, note);
 					Debug.log(this.getClass(), "remove " + record.toString());
@@ -338,6 +336,7 @@ public class FormMain {
 					if(del)Debug.log(this.getClass(), "delete successful");
 					else Debug.log(this.getClass(), "delete failed");
 				});
+				
 				RecordFileWriter writer = null;
 				try {
 					writer = new RecordFileWriter(currentRecordFile, false);
@@ -356,46 +355,45 @@ public class FormMain {
 		buttonOperationDelete.setEnabled(false);
 		
 		Label labelTitleAnalyse = new Label(compositeRecordDay, SWT.NONE);
-		labelTitleAnalyse.setBounds(10, 493, 80, 25);
+		labelTitleAnalyse.setBounds(10, 493, 150, 25);
 		labelTitleAnalyse.setFont(SWTResourceManager.getFont("Microsoft JhengHei UI", 12, SWT.NORMAL));
-		labelTitleAnalyse.setText("\u7D71\u8A08\u8CC7\u6599");
+		labelTitleAnalyse.setText(I18n.format("form.main.record.label.statistical.name", new Object[0]));
 		labelTitleAnalyse.setBackground(FormHelper.BACKGROUND);
 		
 		Label labelSum = new Label(compositeRecordDay, SWT.NONE);
-		labelSum.setBounds(10, 524, 45, 19);
-		labelSum.setText("\u7E3D\u82B1\u8CBB");
+		labelSum.setBounds(10, 524, 119, 19);
+		labelSum.setText(I18n.format("form.main.record.label.sum.name"));
 		labelSum.setBackground(FormHelper.BACKGROUND);
 		
 		labelAverage = new Label(compositeRecordDay, SWT.NONE);
-		labelAverage.setBounds(10, 555, 60, 19);
-		labelAverage.setText("\u5E73\u5747\u82B1\u8CBB");
+		labelAverage.setBounds(10, 555, 119, 19);
+		labelAverage.setText(I18n.format("form.main.record.label.average.name"));
 		labelAverage.setBackground(FormHelper.BACKGROUND);
 		
 		textAverage = new Text(compositeRecordDay, SWT.NONE);
-		textAverage.setBounds(97, 555, 114, 25);
+		textAverage.setBounds(148, 555, 80, 25);
 		textAverage.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		textAverage.setText("0");
 		textAverage.setEditable(false);
 		textAverage.setBackground(FormHelper.BACKGROUND);
 		
 		textSpendSum = new Text(compositeRecordDay, SWT.NONE);
-		textSpendSum.setBounds(97, 524, 114, 25);
+		textSpendSum.setBounds(148, 524, 80, 25);
 		textSpendSum.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		textSpendSum.setText("0");
 		textSpendSum.setEditable(false);
 		textSpendSum.setBackground(FormHelper.BACKGROUND);
 		
-		Composite compositeRecordMonth = new Composite(composite, SWT.BORDER | SWT.V_SCROLL | SWT.EMBEDDED);
+		compositeRecordMonth = new Composite(composite, SWT.BORDER | SWT.V_SCROLL | SWT.EMBEDDED);
 		compositeRecordMonth.setBounds(14, 10, 264, 737);
 		compositeRecordMonth.setLayout(null);
 		
-		ScrollBar barMonth = compositeRecordMonth.getVerticalBar();
-		barMonth.addSelectionListener(new SelectionListener() {
+		ScrollBar scrollBarMonth = compositeRecordMonth.getVerticalBar();
+		scrollBarMonth.addSelectionListener(new SelectionListener() {
 		    public void widgetDefaultSelected(SelectionEvent e) {}
-
 		    public void widgetSelected(SelectionEvent e) {
 		        if (e.detail == SWT.NONE || e.detail == SWT.ARROW_UP || e.detail == SWT.ARROW_DOWN) {
-		            refreshRecordButton(barMonth.getSelection());
+		            refreshRecordButton(scrollBarMonth.getSelection());
 		        }
 		    }
 		});
@@ -432,7 +430,42 @@ public class FormMain {
 		buttonAddRecordMonth.setBounds(10, 0, 60,60);
 		buttonAddRecordMonth.setBackground(FormHelper.BACKGROUND);
 		buttonAddRecordMonth.setImage(ImageHelper.resizeImage(shell.getDisplay(), SWTResourceManager.getImage(FormMain.class, "/assets/clwhthr/gui/image/addRecord.png"), 60, 60));
-		
+		buttonAddRecordMonth.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FormAddMonth dialog = new FormAddMonth(shell, shell.getStyle());
+				shell.setEnabled(false);
+				Date date = dialog.open();
+				if(date==null)return;
+				
+				int year = date.getYear();
+				int month = date.getMonth();
+				RecordFileCreater creater = new RecordFileCreater(Main.currentAccount);
+				try {
+					creater.createFile(year, month);
+				} catch (FileExistException e1) {
+					MessageBox msg = new MessageBox(shell,SWT.ICON|SWT.ICON_INFORMATION);
+					msg.setText(I18n.format("msg.error.title.name"));
+					msg.setMessage(I18n.format("msg.existMonth.text"));
+					msg.open();
+					return;
+				}
+				Button button = new Button(compositeRecordMonth,SWT.PUSH);
+				button.setBounds(5, 68 + (buttonRecordMonth.size()) * 58, 228, 48);
+				button.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 20, 20));
+				button.setText(year + " / " + month);
+				button.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent event) {
+						openRecord(year,month);
+					}
+				});
+				buttonRecordMonth.add(button);
+				
+				refreshRecordButton();
+				
+			}
+		});
 		buttonAddRecord = new Button(compositeOption, SWT.NONE);
 		buttonAddRecord.setBounds(142, 0, 60, 60);
 		buttonAddRecord.setBackground(FormHelper.BACKGROUND);
@@ -454,8 +487,8 @@ public class FormMain {
 					
 				} catch (FileNotFoundException e) {
 					MessageBox error = new MessageBox(shell,SWT.ICON_WARNING);
-					error.setText("錯誤");
-					error.setMessage("該月份之紀錄檔不存在\n請新增");
+					error.setText(I18n.format("msg.error.title.name"));
+					error.setMessage(I18n.format("msg.error.addrecord.fileNoFound.text"));
 					error.open();
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -481,44 +514,12 @@ public class FormMain {
 		buttonSetting.setBackground(FormHelper.BACKGROUND);
 		buttonSetting.setImage(ImageHelper.resizeImage(shell.getDisplay(), SWTResourceManager.getImage(FormMain.class, "/assets/clwhthr/gui/image/setting.png"), 60, 60));
 		
-		buttonAddRecordMonth.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				FormAddMonth dialog = new FormAddMonth(shell, shell.getStyle());
-				shell.setEnabled(false);
-				Date date = dialog.open();
-				if(date==null)return;
-				int year = date.getYear();
-				int month = date.getMonth();
-				RecordFileCreater creater = new RecordFileCreater(Main.currentAccount);
-				try {
-					creater.createFile(year, month);
-				} catch (FileExistException e1) {
-					MessageBox msg = new MessageBox(shell,SWT.ICON|SWT.ICON_INFORMATION);
-					msg.setText("錯誤");
-					msg.setMessage("該月份已經存在");
-					msg.open();
-					return;
-				}
-				Button button = new Button(compositeRecordMonth,SWT.PUSH);
-				button.setBounds(5, 68 + (buttonRecordMonth.size()) * 58, 228, 48);
-				button.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 20, 20));
-				button.setText(year + " / " + month);
-				button.addSelectionListener(new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent event) {
-						openRecord(year,month);
-					}
-				});
-				buttonRecordMonth.add(button);
-				
-				
-				refreshRecordButton();
-				
-			}
-		});
+		initRecordMonthButton();
 		
-		
+	}
+	
+	private void initRecordMonthButton() {
+
 		for (File file : Main.recordFiles) {
 			String fileName = FileHelper.getFileName(file);
 			if(fileName.matches("[0-9]+") == false || fileName.length() != 6)continue;
@@ -535,10 +536,11 @@ public class FormMain {
 				}
 			});
 			buttonRecordMonth.add(button);
-			Debug.log(this.getClass(), "create new button:%s",button.getText());
-			Debug.log(this.getClass(), "list.length=%d",buttonRecordMonth.size());
+			//Debug.log(this.getClass(), "create new button:%s",button.getText());
+			//Debug.log(this.getClass(), "list.length=%d",buttonRecordMonth.size());
 		}
 	}
+	
 	private void refreshRecordButton() {
 		buttonRecordMonth.sort(new Comparator<Button>() {
 			@Override
@@ -577,16 +579,17 @@ public class FormMain {
 	}
 	
 	private void openRecord(int year, int month) {
-		Debug.log(this.getClass(), "open record(%d/%d)",year,month);
-		lableDate.setText(year + "年" + month + "月");
+		//Debug.log(this.getClass(), "open record(%d/%d)",year,month);
+		lableDate.setText(I18n.format("form.main.record.label.date",String.valueOf(year),String.valueOf(month)));
 		RecordFileGetter fileGetter = new RecordFileGetter(Main.currentAccount, year,month);
 		try {
 			currentRecordFile = fileGetter.getFile();
 		} catch (FileNotFoundException e) {
-			// TODO 自動產生的 catch 區塊
 			e.printStackTrace();
+			return;
 		}
-		
+		currentMonth = month;
+		currentYear = year;
 		updateRecord();
 	}
 	private void updateRecord() {
@@ -605,7 +608,7 @@ public class FormMain {
 			try {
 				CSVReader reader = new CSVReader(currentRecordFile);
 				List<String[]> list = reader.getContents();
-				Debug.log(this.getClass(), "list.size=%d",list.size());
+				//Debug.log(this.getClass(), "list.size=%d",list.size());
 				reader.close();
 				
 				totalday = 0;
@@ -621,19 +624,11 @@ public class FormMain {
 					if(totalday < date.getDay())totalday = date.getDay();
 					spendSum += money;
 				}
-				int count = 0;
+				
 				recordList.sort(Comparator.comparing(Record::getDate).thenComparing(Record::getMoney));
 				for (Record record : recordList) {
-					TableItem recorditem = new TableItem(table, SWT.NONE);
-					Date date = record.getDate();
-					recorditem.setText(0, String.valueOf(count));
-					recorditem.setText(1, date.getMonth() + "/" + date.getDay());
-					recorditem.setText(2, record.getType().name());
-					recorditem.setText(3,String.valueOf(record.getMoney()));
-					if(record.getNote().equals("none") == false)recorditem.setText(4,record.getNote());
-					else recorditem.setText(4,"");
-					
-					count++;
+					RecordItemCreater adapter = new RecordItemCreater(record);
+					TableItem item = adapter.create(table);
 				}
 				textSpendSum.setText(String.valueOf(spendSum));
 				textAverage.setText(String.valueOf(Math.round((float)spendSum / (float)totalday)));
@@ -644,7 +639,6 @@ public class FormMain {
 		}
 	}
 	private void updateChart() {
-		
 		Record.Type types[] = Record.Type.values();
 		double typeMoneySum[] = new double[types.length];
 		for(int i = 0;i<typeMoneySum.length;i++)typeMoneySum[i] = 0;
@@ -654,10 +648,7 @@ public class FormMain {
 		for(int i = 0;i<types.length;i++)typeName[i] = types[i].getLocalName();
 		int moneySum = 0;
 		
-		if(recordList.size()==0){
-			
-		}
-		else {
+		if(recordList.size()!=0) {
 			Record[] records = new Record[recordList.size()];
 			recordList.toArray(records);
 			for(int i = 0;i<records.length;i++) {
@@ -667,7 +658,6 @@ public class FormMain {
 				moneyDailySum[record.getDate().getDay()-1] += record.getMoney();
 			}
 		}
-		
 		//chart
 		try {
 			barChart.getSeriesSet().deleteSeries("bar series");
@@ -693,7 +683,6 @@ public class FormMain {
 		Debug.log(this.getClass(), "pie chart complete");
 		
 	}
-	
 	private void clearRecordTable() {
 		recordList.clear();
 		checkedItems.clear();

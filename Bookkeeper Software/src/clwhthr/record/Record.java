@@ -1,4 +1,4 @@
-package clwhthr.util;
+package clwhthr.record;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -6,6 +6,9 @@ import java.util.List;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.wb.swt.SWTResourceManager;
+
+import clwhthr.resources.I18n;
+import clwhthr.util.Date;
 import clwhthr.util.form.FormHelper;
 
 public class Record{
@@ -81,8 +84,23 @@ public class Record{
 			}
 			return list;
 		}
+		public static String[] localNames() {
+			Type[] types = Type.values();
+			String[] list = new String[types.length];
+			for(int i = 0;i<list.length;i++) {
+				list[i] = types[i].getLocalName();
+			}
+			return list;
+		}
 		public String getLocalName() {
-			return this.name();
+			return I18n.format("enum.record.type." + name(), new Object[0]);
+		}
+		public static Type valueOfLocalname(String localName) {
+			Type[] types = Type.values();
+			for(int i = 0;i<types.length;i++) {
+				if(types[i].getLocalName().equals(localName))return types[i];
+			}
+			return null;
 		}
 		public Color getColor() {
 			return this.color;

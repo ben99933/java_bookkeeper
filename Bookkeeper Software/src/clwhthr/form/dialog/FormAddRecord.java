@@ -1,4 +1,4 @@
-package clwhthr.form;
+package clwhthr.form.dialog;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Dialog;
@@ -8,9 +8,10 @@ import org.eclipse.ui.internal.forms.widgets.FormHeading;
 
 import clwhthr.exception.DateFormatException;
 import clwhthr.exception.FormatException;
+import clwhthr.record.Record;
+import clwhthr.record.Record.Type;
+import clwhthr.resources.I18n;
 import clwhthr.util.Date;
-import clwhthr.util.Record;
-import clwhthr.util.Record.Type;
 import clwhthr.util.form.FormHelper;
 import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Label;
@@ -51,7 +52,7 @@ public class FormAddRecord extends Dialog {
 	public FormAddRecord(Shell parent) {
 		super(parent);
 		this.parent = parent;
-		setText("新增消費");
+		setText(I18n.format("form.addRecord.shell.name"));
 	}
 
 	/**
@@ -64,19 +65,6 @@ public class FormAddRecord extends Dialog {
 		shell.layout();
 		FormHelper.setCenter(shell);
 		
-		Label labelMoney = new Label(shell, SWT.NONE);
-		labelMoney.setBounds(242, 10, 73, 19);
-		labelMoney.setText("\u91D1\u984D");
-		
-		textMoney = new Text(shell, SWT.BORDER);
-		textMoney.setBounds(242, 35, 108, 25);
-		
-		Label labelNote = new Label(shell, SWT.NONE);
-		labelNote.setBounds(10, 69, 73, 19);
-		labelNote.setText("\u5099\u8A3B");
-		
-		textNote = new Text(shell, SWT.BORDER);
-		textNote.setBounds(10, 94, 340, 52);
 		
 		
 		Display display = getParent().getDisplay();
@@ -94,14 +82,27 @@ public class FormAddRecord extends Dialog {
 	private void createContents() {
 		shell = new Shell(getParent(), SWT.BORDER | SWT.TITLE | SWT.PRIMARY_MODAL);
 		shell.setSize(376, 278);
-		shell.setText("\u65B0\u589E\u6D88\u8CBB\u7D00\u9304");
+		shell.setText(I18n.format("form.addRecord.shell.name"));
 
 		time = new DateTime(shell, SWT.BORDER);
 		time.setBounds(10, 34, 112, 28);
 		
+		Label labelMoney = new Label(shell, SWT.NONE);
+		labelMoney.setBounds(242, 10, 73, 19);
+		labelMoney.setText(I18n.format("record.money.name"));
+		textMoney = new Text(shell, SWT.BORDER);
+		textMoney.setBounds(242, 35, 108, 25);
+		
+		Label labelNote = new Label(shell, SWT.NONE);
+		labelNote.setBounds(10, 69, 73, 19);
+		labelNote.setText(I18n.format("record.note.name"));
+		textNote = new Text(shell, SWT.BORDER);
+		textNote.setBounds(10, 94, 340, 52);
+		
+		
 		Label lableDate = new Label(shell, SWT.NONE);
 		lableDate.setBounds(10, 10, 73, 19);
-		lableDate.setText("\u65E5\u671F");
+		lableDate.setText(I18n.format("record.date.name"));
 		
 		buttonCancel = new Button(shell, SWT.NONE);
 		buttonCancel.addSelectionListener(new SelectionAdapter() {
@@ -111,7 +112,7 @@ public class FormAddRecord extends Dialog {
 			}
 		});
 		buttonCancel.setBounds(10, 194, 94, 29);
-		buttonCancel.setText("\u53D6\u6D88");
+		buttonCancel.setText(I18n.format("form.addRecord.button.cancel.name"));
 		
 		buttonConfirm = new Button(shell, SWT.NONE);
 		buttonConfirm.addSelectionListener(new SelectionAdapter() {
@@ -132,23 +133,23 @@ public class FormAddRecord extends Dialog {
 					close();
 				} catch (Exception exception) {
 					MessageBox dialog = new MessageBox(shell, SWT.ICON_WARNING);
-					dialog.setText("錯誤");
-					dialog.setMessage("輸入的格式錯誤");
+					dialog.setText(I18n.format("msg.error.title.name"));
+					dialog.setMessage(I18n.format("msg.worngFormat.text"));
 					dialog.open();
 				}
 			}
 		});
 		buttonConfirm.setBounds(256, 194, 94, 29);
-		buttonConfirm.setText("\u78BA\u5B9A");
+		buttonConfirm.setText(I18n.format("form.addRecord.button.confirm.name"));
 		
 		lableType = new Label(shell, SWT.NONE);
 		lableType.setBounds(126, 10, 73, 19);
-		lableType.setText("\u985E\u5225");
+		lableType.setText(I18n.format("record.type.name"));
 		
 		
 		comboType = new Combo(shell, SWT.NONE);
 		comboType.setBounds(128, 35, 108, 27);
-		comboType.setItems(Record.Type.names());
+		comboType.setItems(Record.Type.localNames());
 		comboType.select(0);
 		
 	}

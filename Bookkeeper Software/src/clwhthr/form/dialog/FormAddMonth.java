@@ -1,4 +1,4 @@
-package clwhthr.form;
+package clwhthr.form.dialog;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Dialog;
@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.internal.forms.widgets.FormHeading;
 
 import clwhthr.exception.DateFormatException;
+import clwhthr.resources.I18n;
 import clwhthr.util.Date;
 import clwhthr.util.Debug;
 import clwhthr.util.form.FormHelper;
@@ -70,7 +71,7 @@ public class FormAddMonth extends Dialog {
 	private void createContents() {
 		shell = new Shell(getParent(),SWT.RESIZE | SWT.TITLE);
 		shell.setSize(450, 208);
-		shell.setText("\u65B0\u589E\u6708\u4EFD");
+		shell.setText(I18n.format("form.addMonth.shell.name"));
 		
 		buttonConfirm = new Button(shell, SWT.NONE);
 		buttonConfirm.addSelectionListener(new SelectionAdapter() {
@@ -85,7 +86,7 @@ public class FormAddMonth extends Dialog {
 			}
 		});
 		buttonConfirm.setBounds(328, 122, 94, 29);
-		buttonConfirm.setText("\u78BA\u8A8D");
+		buttonConfirm.setText(I18n.format("form.button.confirm.name"));
 		
 		buttonCancel = new Button(shell, SWT.NONE);
 		buttonCancel.addSelectionListener(new SelectionAdapter() {
@@ -95,7 +96,7 @@ public class FormAddMonth extends Dialog {
 			}
 		});
 		buttonCancel.setBounds(10, 122, 94, 29);
-		buttonCancel.setText("\u53D6\u6D88");
+		buttonCancel.setText(I18n.format("form.button.cancel.name"));
 		
 		timeBox = new DateTime(shell, SWT.BORDER | SWT.SHORT);
 		timeBox.setBounds(49, 50, 309, 37);
