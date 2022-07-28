@@ -96,6 +96,7 @@ public class FormAddRecord extends Dialog {
 		Label labelNote = new Label(shell, SWT.NONE);
 		labelNote.setBounds(10, 69, 73, 19);
 		labelNote.setText(I18n.format("record.note.name"));
+		
 		textNote = new Text(shell, SWT.BORDER);
 		textNote.setBounds(10, 94, 340, 52);
 		
@@ -123,7 +124,7 @@ public class FormAddRecord extends Dialog {
 					int month = time.getMonth()+1;
 					int day = time.getDay();
 					Date date = new Date(year,month,day);
-					Record.Type type = Type.valueOf(comboType.getItem(comboType.getSelectionIndex()));
+					Record.Type type = Type.values()[comboType.getSelectionIndex()];
 					int money = Integer.valueOf(textMoney.getText());
 					String note = textNote.getText();
 					if(note.length() == 0)note = "none";
@@ -136,6 +137,7 @@ public class FormAddRecord extends Dialog {
 					dialog.setText(I18n.format("msg.error.title.name"));
 					dialog.setMessage(I18n.format("msg.worngFormat.text"));
 					dialog.open();
+					
 				}
 			}
 		});

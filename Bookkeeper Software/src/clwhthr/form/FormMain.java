@@ -9,9 +9,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
@@ -27,6 +29,7 @@ import clwhthr.exception.FileExistException;
 import clwhthr.exception.FileFormatException;
 import clwhthr.form.dialog.FormAddMonth;
 import clwhthr.form.dialog.FormAddRecord;
+import clwhthr.form.dialog.FormEditRecord;
 import clwhthr.form.dialog.FormSetting;
 import clwhthr.io.CSVCreater;
 import clwhthr.io.CSVGetter;
@@ -36,6 +39,7 @@ import clwhthr.io.RecordFileGetter;
 import clwhthr.io.RecordFileWriter;
 import clwhthr.io.file.CSVFile;
 import clwhthr.main.Main;
+import clwhthr.record.ItemRecordAdapter;
 import clwhthr.record.Record;
 import clwhthr.record.RecordItemCreater;
 import clwhthr.record.Record.Type;
@@ -53,6 +57,7 @@ import org.eclipse.swt.custom.ViewForm;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.Button;
@@ -113,6 +118,7 @@ public class FormMain {
 	private Composite compositeRecordMonth;
 	protected List<Button> buttonRecordMonth;
 	private Table table;
+	private TableEditor tableEditor;
 	private TableColumn columnDate;
 	private TableColumn columnMoney;
 	private TableColumn columnSpendType;
@@ -131,6 +137,7 @@ public class FormMain {
 	private Composite compositeTable;
 	private Text textSpendSum;
 	private Button buttonOperationDelete;
+	private Button buttonEditRecord;
 	
 	
 	private Composite compositeBarChart;
@@ -144,10 +151,10 @@ public class FormMain {
 	private Chart lineChart;
 	private Chart pieChart;
 	
-	private int totalday = 0;
+	private Set<Integer> daySet = new HashSet<Integer>();
 	private int currentYear = 0;
 	private int currentMonth = 0;
-	
+	private int maxDay =  0;
 	
 	/**
 	 * Launch the application.
@@ -193,7 +200,7 @@ public class FormMain {
 		
 		shell = new Shell(SWT.CLOSE | SWT.MIN | SWT.TITLE );
 		shell.setText(I18n.format("form.main.shell.name", new Object[0]));
-		shell.setSize(size.width, size.height);
+		shell.setSize(900, 900);
 		shell.setBackground(FormHelper.BACKGROUND);
 		shell.setLayout(null);
 		
@@ -229,7 +236,9 @@ public class FormMain {
 			@Override
 			public void handleEvent(Event event) {
 				checkedItems = FormHelper.getCheckedItems(table);
-				buttonOperationDelete.setEnabled(checkedItems.size() > 0 ? true : false);
+				int amount = checkedItems.size();
+				buttonOperationDelete.setEnabled(amount > 0 ? true : false);
+				buttonEditRecord.setEnabled(amount == 1 ? true : false);
 			}
 		});
 		
@@ -272,7 +281,7 @@ public class FormMain {
 		barChart = new Chart(compositeBarChart, SWT.NONE);
 		barChart.getTitle().setText(I18n.format("form.main.chart.bar.title.name"));
 		barChart.getAxisSet().getXAxis(0).getTitle().setText(I18n.format("record.date.name"));
-		barChart.getAxisSet().getYAxis(0).getTitle().setText(I18n.format("record.date.money"));
+		barChart.getAxisSet().getYAxis(0).getTitle().setText(I18n.format("record.money.name"));
 		barChart.setBounds(10, 10, 510, 370);
 		
 		
@@ -301,7 +310,7 @@ public class FormMain {
 		
 		
 		buttonOperationDelete = new Button(compositeRecordDay, SWT.NONE);
-		buttonOperationDelete.setBounds(234, 10, 45, 45);
+		buttonOperationDelete.setBounds(285, 10, 45, 45);
 		buttonOperationDelete.setBackground(FormHelper.BACKGROUND);
 		buttonOperationDelete.setImage(ImageHelper.resizeImage(shell.getDisplay(), SWTResourceManager.getImage(FormMain.class, "/assets/clwhthr/gui/image/delete.png"), 45, 45));
 		buttonOperationDelete.addSelectionListener(new SelectionAdapter() {
@@ -317,37 +326,14 @@ public class FormMain {
 				if(result == SWT.CANCEL)return;
 				
 				checked.stream().forEach(item ->{
-					int month = Integer.valueOf(item.getText(0).split("/")[0]);
-					int day = Integer.valueOf(item.getText(0).split("/")[1]);
-					Date date = null;
-					try {
-						date = new Date(currentYear, month, day);
-					} catch (DateFormatException e) {
-						// TODO 自動產生的 catch 區塊
-						e.printStackTrace();
-					}
-					Record.Type type = Record.Type.valueOfLocalname(item.getText(1));
-					int money = Integer.valueOf(item.getText(2));
-					String note = item.getText(3);
-					if(note.length() == 0 || note.equals(""))note = "none";
-					Record record = new Record(date, type, money, note);
+					Record record = new ItemRecordAdapter(currentYear, item).getRecord();
 					Debug.log(this.getClass(), "remove " + record.toString());
 					boolean del = records.remove(record);
 					if(del)Debug.log(this.getClass(), "delete successful");
 					else Debug.log(this.getClass(), "delete failed");
 				});
 				
-				RecordFileWriter writer = null;
-				try {
-					writer = new RecordFileWriter(currentRecordFile, false);
-					for (Record record : records) {
-						writer.write(record.toStringArray());
-					}
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				writer.close();
-				
+				saveCurrentRecord(records);
 				updateRecord();
 				
 			}
@@ -383,6 +369,29 @@ public class FormMain {
 		textSpendSum.setText("0");
 		textSpendSum.setEditable(false);
 		textSpendSum.setBackground(FormHelper.BACKGROUND);
+		
+		buttonEditRecord = new Button(compositeRecordDay, SWT.NONE);
+		buttonEditRecord.setBackground(FormHelper.BACKGROUND);
+		buttonEditRecord.setBounds(234, 10, 45, 45);
+		buttonEditRecord.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				List<TableItem> checkItems = checkedItems;
+				TableItem item = checkItems.get(0);
+				Record recordOld = new ItemRecordAdapter(currentYear, item).getRecord();
+				FormEditRecord dialog = new FormEditRecord(shell, recordOld);
+				Record recordNew = dialog.open();
+				if(recordNew == null)return;
+				
+				recordList.remove(recordOld);
+				recordList.add(recordNew);
+				saveCurrentRecord(recordList);
+				
+				updateRecord();
+			}
+		});
+		buttonEditRecord.setImage(ImageHelper.resizeImage(shell.getDisplay(), SWTResourceManager.getImage(FormMain.class, "/assets/clwhthr/gui/image/edit.png"), 45, 45));
+		buttonEditRecord.setEnabled(false);
 		
 		compositeRecordMonth = new Composite(composite, SWT.BORDER | SWT.V_SCROLL | SWT.EMBEDDED);
 		compositeRecordMonth.setBounds(14, 10, 264, 737);
@@ -466,6 +475,7 @@ public class FormMain {
 				
 			}
 		});
+		
 		buttonAddRecord = new Button(compositeOption, SWT.NONE);
 		buttonAddRecord.setBounds(142, 0, 60, 60);
 		buttonAddRecord.setBackground(FormHelper.BACKGROUND);
@@ -517,7 +527,19 @@ public class FormMain {
 		initRecordMonthButton();
 		
 	}
-	
+	private void saveCurrentRecord(List<Record> records) {
+		RecordFileWriter writer = null;
+		try {
+			writer = new RecordFileWriter(currentRecordFile, false);
+			for (Record record : records) {
+				writer.write(record.toStringArray());
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		writer.close();
+		
+	}
 	private void initRecordMonthButton() {
 
 		for (File file : Main.recordFiles) {
@@ -594,6 +616,7 @@ public class FormMain {
 	}
 	private void updateRecord() {
 		shell.setEnabled(false);
+		daySet.clear();
 		updateRecordTable();
 		updateChart();
 		tabFolder.setSelection(0);
@@ -611,7 +634,7 @@ public class FormMain {
 				//Debug.log(this.getClass(), "list.size=%d",list.size());
 				reader.close();
 				
-				totalday = 0;
+
 				int spendSum = 0;
 				Iterator<String[]> iterator = list.iterator();
 				while(iterator.hasNext()) {
@@ -621,17 +644,19 @@ public class FormMain {
 					int money = Integer.valueOf(array[4]);
 					String note = array[5];
 					recordList.add(new Record(date,type,money,note));
-					if(totalday < date.getDay())totalday = date.getDay();
+					if(maxDay < date.getDay())maxDay = date.getDay();
 					spendSum += money;
+					daySet.add(date.getDay());
 				}
 				
 				recordList.sort(Comparator.comparing(Record::getDate).thenComparing(Record::getMoney));
 				for (Record record : recordList) {
 					RecordItemCreater adapter = new RecordItemCreater(record);
 					TableItem item = adapter.create(table);
+					
 				}
 				textSpendSum.setText(String.valueOf(spendSum));
-				textAverage.setText(String.valueOf(Math.round((float)spendSum / (float)totalday)));
+				if(daySet.size() != 0)textAverage.setText(String.valueOf(Math.round((float)spendSum / (float)daySet.size())));
 				
 			} catch (Exception e) {
 				// TODO: handle exception
@@ -642,7 +667,7 @@ public class FormMain {
 		Record.Type types[] = Record.Type.values();
 		double typeMoneySum[] = new double[types.length];
 		for(int i = 0;i<typeMoneySum.length;i++)typeMoneySum[i] = 0;
-		double moneyDailySum[] = new double[totalday];
+		double moneyDailySum[] = new double[maxDay];
 		for(int i = 0;i<moneyDailySum.length;i++)moneyDailySum[i] = 0;
 		String typeName[] = new String[types.length];
 		for(int i = 0;i<types.length;i++)typeName[i] = types[i].getLocalName();
