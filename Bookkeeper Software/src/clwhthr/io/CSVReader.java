@@ -1,6 +1,7 @@
 package clwhthr.io;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -12,7 +13,6 @@ import java.util.Scanner;
 
 import javax.xml.ws.WebServiceException;
 
-import com.sun.xml.internal.ws.Closeable;
 
 import clwhthr.exception.FileFormatException;
 import clwhthr.util.Debug;
@@ -38,7 +38,7 @@ public class CSVReader implements Closeable{
 		return content;
 	}
 	@Override
-	public void close() throws WebServiceException {
+	public void close(){
 		try {
 			reader.close();
 		} catch (IOException e) {

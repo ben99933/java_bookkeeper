@@ -56,11 +56,13 @@ public class AccountHandler {
 			String passHash = account.getPasswordHash();
 			if(passHash.equals(hash) == false)return false;
 		} catch (Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 		Main.currentAccount = new Account(name, hash);
 		InitializeHandler.init();
 		return true;
+		
 	}
 
 

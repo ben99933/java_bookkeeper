@@ -1,5 +1,6 @@
 package clwhthr.io;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -10,7 +11,6 @@ import java.io.Writer;
 
 import javax.xml.ws.WebServiceException;
 
-import com.sun.xml.internal.ws.Closeable;
 
 public class AccountFileWriter implements Closeable{
 	
@@ -32,7 +32,7 @@ public class AccountFileWriter implements Closeable{
 		outputStream.printf(format, args);
 	}
 	@Override
-	public void close() throws WebServiceException {
+	public void close(){
 		outputStream.close();
 	}
 	

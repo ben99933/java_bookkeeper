@@ -27,9 +27,11 @@ import org.eclipse.swt.widgets.Shell;
 import clwhthr.exception.DateFormatException;
 import clwhthr.exception.FileExistException;
 import clwhthr.exception.FileFormatException;
+import clwhthr.form.dialog.FormAbout;
 import clwhthr.form.dialog.FormAddMonth;
 import clwhthr.form.dialog.FormAddRecord;
 import clwhthr.form.dialog.FormEditRecord;
+import clwhthr.form.dialog.FormSearchMonth;
 import clwhthr.form.dialog.FormSetting;
 import clwhthr.io.CSVCreater;
 import clwhthr.io.CSVGetter;
@@ -51,8 +53,6 @@ import clwhthr.util.FileHelper;
 import clwhthr.util.form.FormHelper;
 import clwhthr.util.form.ImageHelper;
 import clwhthr.util.form.FormHelper.ScreenSize;
-import javafx.scene.chart.BarChart;
-
 import org.eclipse.swt.custom.ViewForm;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
@@ -96,6 +96,7 @@ import org.eclipse.swtchart.IBarSeries;
 import org.eclipse.swtchart.ICircularSeries;
 import org.eclipse.swtchart.ILineSeries;
 import org.eclipse.swtchart.ISeries.SeriesType;
+import org.eclipse.swtchart.ISeriesSet;
 import org.eclipse.swtchart.extensions.core.IChartSeriesData;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.custom.TableCursor;
@@ -110,7 +111,7 @@ public class FormMain {
 	private Composite composite;
 	private Composite compositeRecordDay;
 	private Composite compositeOption;
-	private Button buttonSearch;
+	private Button buttonSearchMonth;
 	private Button buttonAddRecordMonth;
 	private Button buttonAddRecord;
 	private Button buttonSetting;
@@ -155,6 +156,7 @@ public class FormMain {
 	private int currentYear = 0;
 	private int currentMonth = 0;
 	private int maxDay =  0;
+	private Button buttonAboutUs;
 	
 	/**
 	 * Launch the application.
@@ -235,10 +237,7 @@ public class FormMain {
 		table.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
-				checkedItems = FormHelper.getCheckedItems(table);
-				int amount = checkedItems.size();
-				buttonOperationDelete.setEnabled(amount > 0 ? true : false);
-				buttonEditRecord.setEnabled(amount == 1 ? true : false);
+				updateOperationButton();
 			}
 		});
 		
@@ -380,6 +379,7 @@ public class FormMain {
 				TableItem item = checkItems.get(0);
 				Record recordOld = new ItemRecordAdapter(currentYear, item).getRecord();
 				FormEditRecord dialog = new FormEditRecord(shell, recordOld);
+				shell.setEnabled(false);
 				Record recordNew = dialog.open();
 				if(recordNew == null)return;
 				
@@ -413,11 +413,21 @@ public class FormMain {
 		compositeOption.setBounds(10, 10, 864, 64);
 		
 		
-		buttonSearch = new Button(compositeOption, SWT.NONE);
-		buttonSearch.setBounds(76, 0, 60, 60);
-		buttonSearch.setBackground(FormHelper.BACKGROUND);
-		buttonSearch.setImage(ImageHelper.resizeImage(shell.getDisplay(), SWTResourceManager.getImage(FormMain.class, "/assets/clwhthr/gui/image/search.png"), 60, 60));
-		buttonSearch.addMouseTrackListener(new MouseTrackListener() {
+		buttonSearchMonth = new Button(compositeOption, SWT.NONE);
+		buttonSearchMonth.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FormSearchMonth dialog = new FormSearchMonth(shell);
+				shell.setEnabled(false);
+				Date date = dialog.open();
+				if(date == null)return;
+				openRecord(date.getYear(),date.getMonth());
+			}
+		});
+		buttonSearchMonth.setBounds(76, 0, 60, 60);
+		buttonSearchMonth.setBackground(FormHelper.BACKGROUND);
+		buttonSearchMonth.setImage(ImageHelper.resizeImage(shell.getDisplay(), SWTResourceManager.getImage(FormMain.class, "/assets/clwhthr/gui/image/search.png"), 60, 60));
+		buttonSearchMonth.addMouseTrackListener(new MouseTrackListener() {
 			@Override
 			public void mouseHover(MouseEvent arg0) {
 				
@@ -457,6 +467,7 @@ public class FormMain {
 					msg.setText(I18n.format("msg.error.title.name"));
 					msg.setMessage(I18n.format("msg.existMonth.text"));
 					msg.open();
+					e1.printStackTrace();
 					return;
 				}
 				Button button = new Button(compositeRecordMonth,SWT.PUSH);
@@ -524,8 +535,28 @@ public class FormMain {
 		buttonSetting.setBackground(FormHelper.BACKGROUND);
 		buttonSetting.setImage(ImageHelper.resizeImage(shell.getDisplay(), SWTResourceManager.getImage(FormMain.class, "/assets/clwhthr/gui/image/setting.png"), 60, 60));
 		
+		buttonAboutUs = new Button(compositeOption, SWT.NONE);
+		buttonAboutUs.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+				FormAbout dialog = new FormAbout(shell);
+				shell.setEnabled(false);
+				dialog.open();
+			}
+		});
+		buttonAboutUs.setBounds(274, 0, 60, 60);
+		buttonAboutUs.setBackground(FormHelper.BACKGROUND);
+		buttonAboutUs.setImage(ImageHelper.resizeImage(shell.getDisplay(), SWTResourceManager.getImage(FormMain.class, "/assets/clwhthr/gui/image/info.png"), 60, 60));
+		
 		initRecordMonthButton();
 		
+	}
+	private void updateOperationButton() {
+		checkedItems = FormHelper.getCheckedItems(table);
+		int amount = checkedItems.size();
+		buttonOperationDelete.setEnabled(amount > 0 ? true : false);
+		buttonEditRecord.setEnabled(amount == 1 ? true : false);
 	}
 	private void saveCurrentRecord(List<Record> records) {
 		RecordFileWriter writer = null;
@@ -601,15 +632,19 @@ public class FormMain {
 	}
 	
 	private void openRecord(int year, int month) {
-		//Debug.log(this.getClass(), "open record(%d/%d)",year,month);
-		lableDate.setText(I18n.format("form.main.record.label.date",String.valueOf(year),String.valueOf(month)));
+		Debug.log(this.getClass(), "open record(%d/%d)",year,month);
 		RecordFileGetter fileGetter = new RecordFileGetter(Main.currentAccount, year,month);
 		try {
 			currentRecordFile = fileGetter.getFile();
 		} catch (FileNotFoundException e) {
+			MessageBox dialog = new MessageBox(shell);
+			dialog.setText(I18n.format("msg.error.title.name"));
+			dialog.setMessage(I18n.format("msg.error.fileNoFound.text"));
+			int result = dialog.open();
 			e.printStackTrace();
 			return;
 		}
+		lableDate.setText(I18n.format("form.main.record.label.date",String.valueOf(year),String.valueOf(month)));
 		currentMonth = month;
 		currentYear = year;
 		updateRecord();
@@ -619,6 +654,7 @@ public class FormMain {
 		daySet.clear();
 		updateRecordTable();
 		updateChart();
+		updateOperationButton();
 		tabFolder.setSelection(0);
 		shell.setEnabled(true);
 	}
@@ -657,9 +693,10 @@ public class FormMain {
 				}
 				textSpendSum.setText(String.valueOf(spendSum));
 				if(daySet.size() != 0)textAverage.setText(String.valueOf(Math.round((float)spendSum / (float)daySet.size())));
+				else textAverage.setText("0");
 				
 			} catch (Exception e) {
-				// TODO: handle exception
+				e.printStackTrace();
 			}
 		}
 	}
@@ -689,7 +726,7 @@ public class FormMain {
 			lineChart.getSeriesSet().deleteSeries("line series");
 			pieChart.getSeriesSet().deleteSeries("pie series");
 		}catch (Exception e) {
-			
+			e.printStackTrace();
 		}
 		IBarSeries<?> barSeries = (IBarSeries<?>)barChart.getSeriesSet().createSeries(SeriesType.BAR,"bar series");
 		ILineSeries<?> lineSeries = (ILineSeries<?>)lineChart.getSeriesSet().createSeries(SeriesType.LINE,"line series");

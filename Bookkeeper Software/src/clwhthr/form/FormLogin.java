@@ -2,7 +2,6 @@ package clwhthr.form;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -16,9 +15,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.internal.forms.widgets.FormHeading;
-
-import com.sun.glass.ui.Screen;
-
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Monitor;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import clwhthr.account.Account;
 import clwhthr.account.AccountHandler;
 import clwhthr.form.dialog.FormRegister;
@@ -30,15 +34,6 @@ import clwhthr.setting.Config;
 import clwhthr.util.Debug;
 import clwhthr.util.form.FormHelper;
 import clwhthr.util.hash.SHA;
-
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Monitor;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.SelectionAdapter;
 
 public class FormLogin {
 
@@ -71,7 +66,6 @@ public class FormLogin {
 		shell.open();
 		shell.layout();
 		shell.addTraverseListener(new TraverseListener() {
-			
 			@Override
 			public void keyTraversed(TraverseEvent event) {
 				 if (event.detail == SWT.TRAVERSE_RETURN){ 
@@ -127,6 +121,7 @@ public class FormLogin {
 					FormMain menu = new FormMain();
 					shell.close();
 					menu.open();
+					
 				}else {
 					MessageBox dialog = new MessageBox(shell,SWT.ICON_WARNING);
 					dialog.setText(I18n.format("msg.error.title.name", new Object[0]));

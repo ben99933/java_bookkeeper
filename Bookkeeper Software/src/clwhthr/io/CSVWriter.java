@@ -1,13 +1,13 @@
 package clwhthr.io;
 
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
 import javax.xml.ws.WebServiceException;
 
-import com.sun.xml.internal.ws.Closeable;
 
 import clwhthr.util.Debug;
 
@@ -20,7 +20,7 @@ public class CSVWriter implements Closeable{
 		writer = new BufferedWriter(new FileWriter(file,append));
 	}
 	@Override
-	public void close() throws WebServiceException {
+	public void close(){
 		try {
 			writer.close();
 		} catch (IOException e) {
